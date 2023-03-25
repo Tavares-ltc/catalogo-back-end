@@ -1,0 +1,83 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id         Int        @id(map: "Admin_pk") @default(autoincrement())
+  name       String     @db.VarChar(255)
+  password   String     @db.VarChar(255)
+  created_at DateTime   @default(dbgenerated("'16:38:05.628232-03'::time with time zone")) @db.Timetz(6)
+  valid      Boolean    @default(true)
+  Images     Images[]
+  Product    Product[]
+  Sessions   Sessions[]
+}
+
+model Images {
+  id         Int      @id(map: "Images_pk") @default(autoincrement())
+  link       String
+  product_id Int
+  created_at DateTime @default(dbgenerated("'16:38:05.628232-03'::time with time zone")) @db.Timetz(6)
+  created_by Int
+  valid      Boolean  @default(true)
+  Product    Product  @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "Images_fk0")
+  Admin      Admin    @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "Images_fk1")
+}
+
+model Product {
+  id                  Int        @id(map: "Product_pk") @default(autoincrement())
+  name                String     @db.VarChar(255)
+  description         String
+  price               Int
+  discount_percentage Int        @default(0)
+  units               Int
+  created_at          DateTime   @default(dbgenerated("'16:38:05.628232-03'::time with time zone")) @db.Timetz(6)
+  created_by          Int
+  valid               Boolean    @default(true)
+  Images              Images[]
+  Admin               Admin      @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "Product_fk0")
+  Wishlist            Wishlist[]
+}
+
+model Sessions {
+  id         Int      @id(map: "Sessions_pk") @default(autoincrement())
+  admin_id   Int
+  token      String
+  created_at DateTime @default(dbgenerated("'20:50:43.291683-03'::time with time zone")) @db.Timetz(6)
+  valid      Boolean  @default(true)
+  Admin      Admin    @relation(fields: [admin_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "Sessions_fk0")
+}
+
+model Wishlist {
+  id         Int      @id(map: "Wishlist_pk") @default(autoincrement())
+  product_id Int
+  order_id   Int
+  created_at DateTime @default(dbgenerated("'16:38:05.628232-03'::time with time zone")) @db.Timetz(6)
+  valid      Boolean  @default(true)
+  Product    Product  @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "Wishlist_fk0")
+  Order      Order    @relation(fields: [order_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "Wishlist_fk1")
+}
+
+model Order {
+  id         Int        @id(map: "Order_pk") @default(autoincrement())
+  client     String     @db.VarChar(255)
+  payment_id Int
+  concluded  Boolean    @default(false)
+  created_at DateTime   @default(dbgenerated("'16:38:05.628232-03'::time with time zone")) @db.Timetz(6)
+  valid      Boolean    @default(true)
+  Payment    Payment    @relation(fields: [payment_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "Order_fk0")
+  Wishlist   Wishlist[]
+}
+
+model Payment {
+  id    Int     @id(map: "Payment_pk") @default(autoincrement())
+  name  String  @db.VarChar(255)
+  valid Boolean @default(true)
+  Order Order[]
+}
+
